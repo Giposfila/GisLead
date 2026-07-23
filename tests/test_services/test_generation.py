@@ -6,9 +6,26 @@ from sqlalchemy import select
 from leadgis.config import Settings
 from leadgis.db.engine import session_scope
 from leadgis.db.models import Campaign, CampaignStatus, Lead, LeadStatus, Message, WebsiteStatus
-from leadgis.generation.generator import generate_for_leads
+from leadgis.generation.generator import _build_context, generate_for_leads
 from leadgis.llm.base import LLMResult, RateLimitError
 from leadgis.worker import JobContext, JobRunner
+
+
+def test_build_context_does_not_fabricate_rating_when_source_lacks_it() -> None:
+    """Regression test: sources like Yandex Maps never populate rating/reviews.
+    Rendering that as "0 отзывов" would read as a verified fact instead of
+    missing data, and could make the LLM claim a business has zero reviews
+    when reviews simply weren't fetched."""
+    campaign = Campaign(name="Т", niche="кафе", city="Москва", source="yandex_maps")
+    lead_no_rating = Lead(campaign_id=1, name="Без рейтинга", rating=None, reviews_count=None)
+    settings = Settings()
+
+    context = _build_context(lead_no_rating, campaign, settings)
+    assert context["rating_human"] == "нет данных"
+
+    lead_with_rating = Lead(campaign_id=1, name="С рейтингом", rating=4.5, reviews_count=10)
+    context = _build_context(lead_with_rating, campaign, settings)
+    assert context["rating_human"] == "4.5 (10 отзывов)"
 
 
 async def _seed_lead(settings: Settings, name: str = "Бизнес Альфа") -> int:

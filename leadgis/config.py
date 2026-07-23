@@ -16,6 +16,7 @@ from leadgis.constants import (
     DEFAULT_OPENAI_COMPAT_MODEL,
     DEFAULT_TWOGIS_RPS,
     DEFAULT_WEBSITE_CHECK_CONCURRENCY,
+    DEFAULT_YANDEX_MAPS_RPS,
 )
 
 LEADGIS_HOME = Path.home() / ".leadgis"
@@ -38,6 +39,7 @@ class ScraperSettings(BaseModel):
 class SourceSettings(BaseModel):
     active: str = "twogis_api"
     twogis_api_key: str = ""
+    yandex_maps_api_key: str = ""
     scraper: ScraperSettings = Field(default_factory=ScraperSettings)
 
 
@@ -51,6 +53,7 @@ class LLMSettings(BaseModel):
 
 class LimitsSettings(BaseModel):
     twogis_rps: int = DEFAULT_TWOGIS_RPS
+    yandex_maps_rps: int = DEFAULT_YANDEX_MAPS_RPS
     website_check_concurrency: int = DEFAULT_WEBSITE_CHECK_CONCURRENCY
 
 

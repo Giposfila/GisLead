@@ -42,6 +42,7 @@ def _to_out(settings: Settings) -> SettingsOut:
         source=SourceSettingsOut(
             active=settings.source.active,
             twogis_api_key_is_set=bool(settings.source.twogis_api_key),
+            yandex_maps_api_key_is_set=bool(settings.source.yandex_maps_api_key),
             scraper_enabled=settings.source.scraper.enabled,
             scraper_max_orgs=settings.source.scraper.max_orgs,
         ),
@@ -97,12 +98,17 @@ async def update_settings(payload: SettingsIn) -> SettingsOut:
     return _to_out(current)
 
 
+_SOURCE_SECRET_FIELDS = {"twogis_api_key", "yandex_maps_api_key"}
+_SOURCE_TEST_OVERRIDE_FIELDS = {"active", *_SOURCE_SECRET_FIELDS}
+
+
 def _with_source_override(settings: Settings, override: SourceSettingsIn | None) -> Settings:
     if override is None:
         return settings
-    update = override.model_dump(exclude_none=True, include={"twogis_api_key"})
-    if not update.get("twogis_api_key"):
-        update.pop("twogis_api_key", None)
+    update = override.model_dump(exclude_none=True, include=_SOURCE_TEST_OVERRIDE_FIELDS)
+    for field in _SOURCE_SECRET_FIELDS:
+        if not update.get(field):
+            update.pop(field, None)
     if not update:
         return settings
     merged = settings.model_copy(deep=True)

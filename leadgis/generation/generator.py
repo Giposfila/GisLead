@@ -78,8 +78,14 @@ def _build_context(lead: Lead, campaign: Campaign, settings: Settings) -> dict[s
         "name": lead.name,
         "category": lead.category or "",
         "city": campaign.city,
-        "rating": lead.rating if lead.rating is not None else "",
-        "reviews_count": lead.reviews_count if lead.reviews_count is not None else 0,
+        # Some sources (e.g. Yandex Maps) never provide rating/reviews at
+        # all — rendering that as "0 отзывов" would read as a verified fact
+        # ("we checked, there are none") instead of "this data is missing".
+        "rating_human": (
+            f"{lead.rating} ({lead.reviews_count or 0} отзывов)"
+            if lead.rating is not None
+            else "нет данных"
+        ),
         "website_status_human": WEBSITE_STATUS_HUMAN.get(lead.website_status, "не проверено"),
         "user_offer": settings.outreach.user_offer,
         "extra_instructions": settings.outreach.extra_instructions,

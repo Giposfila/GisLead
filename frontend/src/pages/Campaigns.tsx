@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, ApiError } from "../api/client";
-import type { Campaign } from "../api/types";
+import type { Campaign, SourceInfo } from "../api/types";
 import { ru } from "../i18n/ru";
 
 const STATUS_LABELS: Record<Campaign["status"], string> = {
@@ -30,6 +30,7 @@ const EMPTY_FORM: NewCampaignForm = { name: "", niche: "", city: "", source: "tw
 export default function Campaigns() {
   const [campaigns, setCampaigns] = useState<Campaign[] | null>(null);
   const [niches, setNiches] = useState<string[]>([]);
+  const [sources, setSources] = useState<SourceInfo[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<NewCampaignForm>(EMPTY_FORM);
   const [showForm, setShowForm] = useState(false);
@@ -45,6 +46,14 @@ export default function Campaigns() {
   useEffect(() => {
     load();
     api.get<string[]>("/niches").then(setNiches).catch(() => setNiches([]));
+    api
+      .get<SourceInfo[]>("/sources")
+      .then((list) => {
+        setSources(list);
+        const firstAvailable = list.find((s) => s.available);
+        if (firstAvailable) setForm((f) => ({ ...f, source: firstAvailable.id }));
+      })
+      .catch(() => setSources([]));
   }, []);
 
   const createCampaign = async (e: React.FormEvent) => {
@@ -116,6 +125,18 @@ export default function Campaigns() {
             value={form.city}
             onChange={(e) => setForm({ ...form, city: e.target.value })}
           />
+          <select
+            className="rounded border px-2 py-1 text-sm"
+            value={form.source}
+            onChange={(e) => setForm({ ...form, source: e.target.value })}
+          >
+            {sources.map((s) => (
+              <option key={s.id} value={s.id} disabled={!s.available}>
+                {s.display_name}
+                {!s.available ? " — не настроен" : ""}
+              </option>
+            ))}
+          </select>
           <button
             className="rounded bg-gray-900 px-3 py-1.5 text-sm text-white disabled:opacity-50"
             disabled={submitting}

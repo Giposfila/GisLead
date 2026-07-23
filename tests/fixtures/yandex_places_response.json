@@ -1,0 +1,41 @@
+{
+  "type": "FeatureCollection",
+  "properties": {
+    "ResponseMetaData": {
+      "SearchResponse": { "found": 2, "display": "multiple" },
+      "SearchRequest": { "request": "кафе, Красноярск", "results": 50, "skip": 0 }
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [92.863183, 56.011547] },
+      "properties": {
+        "name": "Пример Кафе",
+        "description": "проспект Мира, 79, Красноярск",
+        "CompanyMetaData": {
+          "id": "1234567890",
+          "name": "Пример Кафе",
+          "address": "проспект Мира, 79, Красноярск",
+          "url": "https://example.com",
+          "Phones": [{ "type": "phone", "formatted": "+7 391 123-45-67" }],
+          "Categories": [{ "class": "cafe", "name": "Кафе" }]
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [92.87, 56.02] },
+      "properties": {
+        "name": "Вторая Кофейня",
+        "description": "улица Урицкого, 94, Красноярск",
+        "CompanyMetaData": {
+          "id": "9876543210",
+          "name": "Вторая Кофейня",
+          "address": "улица Урицкого, 94, Красноярск",
+          "Categories": [{ "class": "cafe", "name": "Кофейня" }]
+        }
+      }
+    }
+  ]
+}

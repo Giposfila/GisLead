@@ -55,10 +55,17 @@ cd frontend && npm run dev
 
 ## Источники данных / Data sources
 
-По умолчанию используется официальный [2GIS Catalog API](https://dev.2gis.com/) —
-нужен API-ключ (см. Settings в приложении). Опциональный Playwright-скрапер
-(`pip install leadgis[scraper]`) — использовать с осторожностью, см. раздел
-"Legal/compliance" ниже.
+Источник выбирается отдельно для каждой кампании (при создании), ключи — в
+Settings:
+
+- [2GIS Catalog API](https://dev.2gis.com/) — рейтинг и отзывы есть всегда;
+  телефон/сайт/соцсети зависят от тарифа ключа (демо-ключи их не отдают).
+- [Yandex Maps Places API](https://developer.tech.yandex.com/) — телефон и
+  сайт есть; рейтинга, отзывов, Instagram и Telegram у сервиса нет вообще
+  (не тариф, а факт API).
+
+Опциональный Playwright-скрапер (`pip install leadgis[scraper]`) —
+использовать с осторожностью, см. раздел "Legal/compliance" ниже.
 
 ## Отправка сообщений / Sending
 

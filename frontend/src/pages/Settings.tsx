@@ -7,6 +7,7 @@ interface SettingsOut {
   source: {
     active: string;
     twogis_api_key_is_set: boolean;
+    yandex_maps_api_key_is_set: boolean;
     scraper_enabled: boolean;
     scraper_max_orgs: number;
   };
@@ -40,6 +41,7 @@ export default function Settings() {
   const [saved, setSaved] = useState(false);
 
   const [twogisKey, setTwogisKey] = useState("");
+  const [yandexKey, setYandexKey] = useState("");
   const [llmProvider, setLlmProvider] = useState("openai_compat");
   const [llmBaseUrl, setLlmBaseUrl] = useState("");
   const [llmApiKey, setLlmApiKey] = useState("");
@@ -49,8 +51,10 @@ export default function Settings() {
   const [extraInstructions, setExtraInstructions] = useState("");
 
   const [sourceCheck, setSourceCheck] = useState<HealthCheck | null>(null);
+  const [yandexCheck, setYandexCheck] = useState<HealthCheck | null>(null);
   const [llmCheck, setLlmCheck] = useState<HealthCheck | null>(null);
   const [checkingSource, setCheckingSource] = useState(false);
+  const [checkingYandex, setCheckingYandex] = useState(false);
   const [checkingLlm, setCheckingLlm] = useState(false);
 
   const load = () => {
@@ -76,6 +80,7 @@ export default function Settings() {
     try {
       const source: Record<string, unknown> = {};
       if (twogisKey) source.twogis_api_key = twogisKey;
+      if (yandexKey) source.yandex_maps_api_key = yandexKey;
 
       const llm: Record<string, unknown> = { provider: llmProvider, base_url: llmBaseUrl, model: llmModel };
       if (llmApiKey) llm.api_key = llmApiKey;
@@ -86,6 +91,7 @@ export default function Settings() {
         outreach: { user_offer: userOffer, extra_instructions: extraInstructions },
       });
       setTwogisKey("");
+      setYandexKey("");
       setLlmApiKey("");
       setSaved(true);
       load();
@@ -100,13 +106,27 @@ export default function Settings() {
     setCheckingSource(true);
     setSourceCheck(null);
     try {
-      const body: Record<string, unknown> = {};
+      const body: Record<string, unknown> = { active: "twogis_api" };
       if (twogisKey) body.twogis_api_key = twogisKey;
       setSourceCheck(await api.post<HealthCheck>("/settings/test/source", body));
     } catch (err) {
       setSourceCheck({ ok: false, detail: err instanceof ApiError ? err.detail : ru.errors.generic });
     } finally {
       setCheckingSource(false);
+    }
+  };
+
+  const testYandex = async () => {
+    setCheckingYandex(true);
+    setYandexCheck(null);
+    try {
+      const body: Record<string, unknown> = { active: "yandex_maps" };
+      if (yandexKey) body.yandex_maps_api_key = yandexKey;
+      setYandexCheck(await api.post<HealthCheck>("/settings/test/source", body));
+    } catch (err) {
+      setYandexCheck({ ok: false, detail: err instanceof ApiError ? err.detail : ru.errors.generic });
+    } finally {
+      setCheckingYandex(false);
     }
   };
 
@@ -147,8 +167,13 @@ export default function Settings() {
       {settings && (
         <div className="mt-6 flex flex-col gap-8">
           <section>
-            <h2 className="font-medium">Источник данных</h2>
-            <div className="mt-2 grid gap-2">
+            <h2 className="font-medium">Источники данных</h2>
+            <p className="mt-1 text-xs text-gray-500">
+              Источник выбирается отдельно для каждой кампании при создании. Здесь — только
+              ключи и проверка подключения.
+            </p>
+
+            <div className="mt-3 grid gap-2">
               <label className="text-sm text-gray-600">
                 2GIS API ключ {settings.source.twogis_api_key_is_set && "(задан)"}
               </label>
@@ -170,6 +195,45 @@ export default function Settings() {
               {sourceCheck && (
                 <p className={`text-sm ${sourceCheck.ok ? "text-green-700" : "text-red-600"}`}>
                   {sourceCheck.detail}
+                </p>
+              )}
+            </div>
+
+            <div className="mt-4 grid gap-2 border-t pt-3">
+              <label className="text-sm text-gray-600">
+                Яндекс.Карты API ключ {settings.source.yandex_maps_api_key_is_set && "(задан)"}
+              </label>
+              <p className="text-xs text-gray-500">
+                Даёт телефон и сайт, но не отдаёт рейтинг/отзывы/Instagram/Telegram — таких
+                данных у сервиса нет. Получить ключ:{" "}
+                <a
+                  className="underline"
+                  href="https://developer.tech.yandex.com/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  developer.tech.yandex.com
+                </a>
+                .
+              </p>
+              <input
+                className="rounded border px-2 py-1 text-sm"
+                type="password"
+                placeholder={settings.source.yandex_maps_api_key_is_set ? "••••••••" : "AQVN..."}
+                value={yandexKey}
+                onChange={(e) => setYandexKey(e.target.value)}
+              />
+              <button
+                className="w-fit rounded border px-3 py-1 text-sm disabled:opacity-50"
+                onClick={testYandex}
+                disabled={checkingYandex}
+                type="button"
+              >
+                Проверить подключение
+              </button>
+              {yandexCheck && (
+                <p className={`text-sm ${yandexCheck.ok ? "text-green-700" : "text-red-600"}`}>
+                  {yandexCheck.detail}
                 </p>
               )}
             </div>

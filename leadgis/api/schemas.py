@@ -17,6 +17,7 @@ class AppSettingsOut(BaseModel):
 class SourceSettingsOut(BaseModel):
     active: str
     twogis_api_key_is_set: bool
+    yandex_maps_api_key_is_set: bool
     scraper_enabled: bool
     scraper_max_orgs: int
 
@@ -58,6 +59,7 @@ class AppSettingsIn(BaseModel):
 class SourceSettingsIn(BaseModel):
     active: str | None = None
     twogis_api_key: str | None = None
+    yandex_maps_api_key: str | None = None
     scraper_enabled: bool | None = None
     scraper_max_orgs: int | None = None
 
