@@ -17,7 +17,11 @@ BASE_URL = "https://catalog.api.2gis.com"
 ITEMS_FIELDS = (
     "items.contact_groups,items.reviews,items.name_ex,items.address,items.rubrics,items.point"
 )
-PAGE_SIZE = 50
+# Free/demo 2GIS API keys cap page_size at 10 (paid tiers allow more, but a
+# request over the cap is rejected outright) — 10 is the safe default that
+# works across tiers; pagination still fetches up to `limit` total via
+# multiple pages.
+PAGE_SIZE = 10
 RETRY_DELAYS = (1.0, 2.0, 4.0)
 
 
@@ -53,7 +57,15 @@ class TwoGisApiAdapter(DataSource):
                 await asyncio.sleep(delay)
                 continue
             resp.raise_for_status()
-            return resp.json()  # type: ignore[no-any-return]
+            data: dict[str, Any] = resp.json()
+            error = data.get("meta", {}).get("error")
+            # 2GIS reports request errors inside a 200-status JSON body, not via HTTP
+            # status. "itemNotFound" means a legitimately empty result set and must
+            # not be treated as a hard error; anything else (bad params, quota, etc.)
+            # would otherwise be silently swallowed as "0 leads found".
+            if error and error.get("type") != "itemNotFound":
+                raise SourceError(f"2GIS API error: {error.get('message', error)}")
+            return data
 
     async def _resolve_city_id(self, client: httpx.AsyncClient, city: str) -> str | None:
         cache_key = f"twogis_city_id:{city.strip().lower()}"
