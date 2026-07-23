@@ -1,0 +1,11 @@
+services:
+  leadgis:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - leadgis-data:/root/.leadgis
+    restart: unless-stopped
+
+volumes:
+  leadgis-data:

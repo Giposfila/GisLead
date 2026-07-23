@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "api_version": "2.0",
+    "code": 200
+  },
+  "result": {
+    "items": [
+      { "id": "32000001", "name": "Москва", "code": "msk" }
+    ],
+    "total": 1
+  }
+}
