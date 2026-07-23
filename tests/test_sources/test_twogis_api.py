@@ -46,6 +46,26 @@ async def test_search_yields_parsed_orgs(db_ready: Settings) -> None:
 
 
 @respx.mock
+async def test_search_sends_region_id_not_city_id(db_ready: Settings) -> None:
+    """Regression test: 2GIS's /3.0/items only recognizes `region_id`. Sending
+    `city_id` (a param it doesn't understand) makes it silently drop the
+    location filter and return 404 "Results not found" for most queries."""
+    respx.get(f"{BASE_URL}/2.0/region/search").mock(
+        return_value=httpx.Response(200, json=_load("twogis_region_search_response.json"))
+    )
+    items_route = respx.get(f"{BASE_URL}/3.0/items").mock(
+        return_value=httpx.Response(200, json=_load("twogis_items_response.json"))
+    )
+
+    adapter = TwoGisApiAdapter(api_key="test-key", rps=1000)
+    [_ async for _ in adapter.search("веб-студия", "Москва", limit=10)]
+
+    sent_params = items_route.calls.last.request.url.params
+    assert "region_id" in sent_params
+    assert "city_id" not in sent_params
+
+
+@respx.mock
 async def test_search_respects_limit(db_ready: Settings) -> None:
     respx.get(f"{BASE_URL}/2.0/region/search").mock(
         return_value=httpx.Response(200, json=_load("twogis_region_search_response.json"))

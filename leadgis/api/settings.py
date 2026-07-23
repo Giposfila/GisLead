@@ -9,10 +9,12 @@ from leadgis.api.schemas import (
     AppSettingsOut,
     HealthCheckOut,
     LimitsSettingsOut,
+    LLMSettingsIn,
     LLMSettingsOut,
     OutreachSettingsOut,
     SettingsIn,
     SettingsOut,
+    SourceSettingsIn,
     SourceSettingsOut,
 )
 from leadgis.config import Settings, load_settings, save_settings
@@ -95,8 +97,38 @@ async def update_settings(payload: SettingsIn) -> SettingsOut:
     return _to_out(current)
 
 
+def _with_source_override(settings: Settings, override: SourceSettingsIn | None) -> Settings:
+    if override is None:
+        return settings
+    update = override.model_dump(exclude_none=True, include={"twogis_api_key"})
+    if not update.get("twogis_api_key"):
+        update.pop("twogis_api_key", None)
+    if not update:
+        return settings
+    merged = settings.model_copy(deep=True)
+    merged.source = merged.source.model_copy(update=update)
+    return merged
+
+
+def with_llm_override(settings: Settings, override: LLMSettingsIn | None) -> Settings:
+    if override is None:
+        return settings
+    update = override.model_dump(exclude_none=True)
+    if not update.get("api_key"):
+        update.pop("api_key", None)
+    if not update:
+        return settings
+    merged = settings.model_copy(deep=True)
+    merged.llm = merged.llm.model_copy(update=update)
+    return merged
+
+
 @router.post("/settings/test/source", response_model=HealthCheckOut)
-async def test_source(settings: Settings = Depends(get_settings_dep)) -> HealthCheckOut:
+async def test_source(
+    override: SourceSettingsIn | None = None,
+    settings: Settings = Depends(get_settings_dep),
+) -> HealthCheckOut:
+    settings = _with_source_override(settings, override)
     try:
         source = get_source(settings.source.active, settings)
     except ValueError as exc:
@@ -106,7 +138,11 @@ async def test_source(settings: Settings = Depends(get_settings_dep)) -> HealthC
 
 
 @router.post("/settings/test/llm", response_model=HealthCheckOut)
-async def test_llm(settings: Settings = Depends(get_settings_dep)) -> HealthCheckOut:
+async def test_llm(
+    override: LLMSettingsIn | None = None,
+    settings: Settings = Depends(get_settings_dep),
+) -> HealthCheckOut:
+    settings = with_llm_override(settings, override)
     try:
         provider = get_llm_provider(settings)
     except ValueError as exc:

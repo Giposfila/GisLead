@@ -1,8 +1,10 @@
 services:
   leadgis:
     build: .
-    ports:
-      - "8000:8000"
+    # host networking (Linux) so "localhost:11434" in Settings reaches a
+    # locally-running Ollama, which by default binds only 127.0.0.1 on the
+    # host and is unreachable from the container's bridge network otherwise.
+    network_mode: host
     volumes:
       - leadgis-data:/root/.leadgis
     restart: unless-stopped

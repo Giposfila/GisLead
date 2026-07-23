@@ -26,10 +26,39 @@ async def test_list_llm_models_from_ollama(client: AsyncClient) -> None:
         "/api/settings",
         json={"llm": {"provider": "openai_compat", "base_url": f"{OLLAMA_BASE_URL}/v1"}},
     )
-    resp = await client.get("/api/llm/models")
+    resp = await client.post("/api/llm/models")
     assert resp.status_code == 200
     assert isinstance(resp.json(), list)
     assert len(resp.json()) > 0
+
+
+async def test_list_llm_models_uses_unsaved_override_not_persisted_settings(
+    client: AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Regression test: Settings page Check/List buttons must send the
+    current (possibly unsaved) form values, not silently fall back to the
+    base_url last written to config.toml."""
+    seen_base_urls: list[str] = []
+
+    class _RecordingProvider:
+        def __init__(self, base_url: str) -> None:
+            seen_base_urls.append(base_url)
+
+        async def list_models(self) -> list[str]:
+            return ["dummy"]
+
+    monkeypatch.setattr(
+        "leadgis.api.llm.get_llm_provider",
+        lambda settings: _RecordingProvider(settings.llm.base_url),
+    )
+
+    resp = await client.post(
+        "/api/llm/models",
+        json={"base_url": "http://example.internal:9999/v1"},
+    )
+
+    assert resp.status_code == 200
+    assert seen_base_urls == ["http://example.internal:9999/v1"]
 
 
 async def test_list_llm_models_maps_provider_unavailable_to_502(
@@ -41,7 +70,7 @@ async def test_list_llm_models_maps_provider_unavailable_to_502(
 
     monkeypatch.setattr("leadgis.api.llm.get_llm_provider", lambda settings: _BrokenProvider())
 
-    resp = await client.get("/api/llm/models")
+    resp = await client.post("/api/llm/models")
 
     assert resp.status_code == 502
     assert "connection refused" in resp.json()["detail"]

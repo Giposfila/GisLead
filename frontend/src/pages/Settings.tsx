@@ -100,7 +100,9 @@ export default function Settings() {
     setCheckingSource(true);
     setSourceCheck(null);
     try {
-      setSourceCheck(await api.post<HealthCheck>("/settings/test/source"));
+      const body: Record<string, unknown> = {};
+      if (twogisKey) body.twogis_api_key = twogisKey;
+      setSourceCheck(await api.post<HealthCheck>("/settings/test/source", body));
     } catch (err) {
       setSourceCheck({ ok: false, detail: err instanceof ApiError ? err.detail : ru.errors.generic });
     } finally {
@@ -108,11 +110,17 @@ export default function Settings() {
     }
   };
 
+  const llmOverride = (): Record<string, unknown> => {
+    const body: Record<string, unknown> = { provider: llmProvider, base_url: llmBaseUrl, model: llmModel };
+    if (llmApiKey) body.api_key = llmApiKey;
+    return body;
+  };
+
   const testLlm = async () => {
     setCheckingLlm(true);
     setLlmCheck(null);
     try {
-      setLlmCheck(await api.post<HealthCheck>("/settings/test/llm"));
+      setLlmCheck(await api.post<HealthCheck>("/settings/test/llm", llmOverride()));
     } catch (err) {
       setLlmCheck({ ok: false, detail: err instanceof ApiError ? err.detail : ru.errors.generic });
     } finally {
@@ -122,7 +130,7 @@ export default function Settings() {
 
   const loadModels = async () => {
     try {
-      setLlmModels(await api.get<string[]>("/llm/models"));
+      setLlmModels(await api.post<string[]>("/llm/models", llmOverride()));
     } catch {
       setLlmModels([]);
     }

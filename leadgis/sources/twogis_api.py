@@ -76,7 +76,7 @@ class TwoGisApiAdapter(DataSource):
                 "page_size": min(PAGE_SIZE, limit),
             }
             if city_id:
-                params["city_id"] = city_id
+                params["region_id"] = city_id
             else:
                 params["q"] = f"{niche} {city}"
 
