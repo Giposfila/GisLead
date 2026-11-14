@@ -1,4 +1,13 @@
-# LeadGis — Local Lead Generation & Mini CRM
+![LeadGis — Local Lead Generation & Mini CRM. Local businesses. Your next clients.](docs/header.svg)
+
+<p align="center">
+  <strong>Local Lead Generation &amp; Mini CRM</strong><br>
+  2GIS · Ollama · Anthropic · OpenAI-compatible API<br>
+  <a href="#быстрый-старт--quickstart">Quickstart</a> ·
+  <a href="#скриншоты--screenshots">Screenshots</a> ·
+  <a href="docs/GETTING_STARTED.md">Getting started</a> ·
+  <a href="LICENSE">MIT License</a>
+</p>
 
 **От поиска компаний в 2GIS до персонального сообщения — в одном локальном приложении.**
 

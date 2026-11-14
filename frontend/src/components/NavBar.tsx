@@ -8,19 +8,23 @@ export default function NavBar() {
     { to: "/campaigns", icon: "grid", label: ru.nav.campaigns },
     { to: "/leads", icon: "users", label: ru.nav.leads },
     { to: "/settings", icon: "settings", label: ru.nav.settings },
+    { to: "/guide", icon: "book", label: ru.nav.guide },
   ] as const;
   return (
-    <aside className="sidebar">
-      <NavLink to="/campaigns" className="brand">
-        <span className="brand-mark">
-          <Icon name="pin" size={24} />
+    <header className="workspace-nav">
+      <NavLink
+        to="/campaigns"
+        className="brand"
+        aria-label={`${ru.app.title} — ${ru.nav.campaigns}`}
+      >
+        <span className="brand-mark" aria-hidden="true">
+          ✳
         </span>
         <span>
           Lead<span className="brand-light">Gis</span>
           <small>{ru.app.tagline}</small>
         </span>
       </NavLink>
-      <div className="nav-caption">{ru.app.navigation}</div>
       <nav aria-label={ru.app.navigation} className="main-nav">
         {links.map(({ to, icon, label }) => {
           const active =
@@ -32,33 +36,17 @@ export default function NavBar() {
               className={`nav-link ${active ? "active" : ""}`}
               aria-current={active ? "page" : undefined}
             >
-              <Icon name={icon} />
+              <Icon name={icon} size={17} />
               <span>{label}</span>
-              <Icon name="chevron" size={14} />
             </Link>
           );
         })}
       </nav>
-      <div className="sidebar-bottom">
-        <NavLink
-          to="/guide"
-          className={({ isActive }) =>
-            `nav-link guide-link ${isActive ? "active" : ""}`
-          }
-        >
-          <Icon name="book" />
-          <span>{ru.nav.guide}</span>
-          <Icon name="arrow" size={16} />
-        </NavLink>
-        <div className="local-note">
-          <Icon name="shield" size={19} />
-          <div>
-            {ru.app.local}
-            <small>{ru.app.localDetail}</small>
-          </div>
-        </div>
-        <div className="version">{ru.app.version}</div>
+      <div className="nav-local">
+        <span className="status-dot" />
+        {ru.app.localShort}
+        <Icon name="shield" size={16} />
       </div>
-    </aside>
+    </header>
   );
 }

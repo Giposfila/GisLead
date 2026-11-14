@@ -27,6 +27,19 @@ export default function App() {
             <Route path="/guide" element={<Guide />} />
             <Route path="*" element={<Navigate to="/campaigns" replace />} />
           </Routes>
+          <footer className="workspace-footer">
+            <span>
+              LeadGis
+              <span className="footer-star" aria-hidden="true">
+                ✳
+              </span>
+              {ru.app.footer}
+            </span>
+            <span>
+              <span className="status-dot" />
+              {ru.app.local}
+            </span>
+          </footer>
         </main>
       </div>
     </JobsProvider>

@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import type { Campaign } from "../api/types";
 import Icon from "../components/Icon";
-import PageHeader from "../components/PageHeader";
 import { useJobs } from "../context/JobsContext";
 import { ru } from "../i18n/ru";
 
@@ -124,13 +123,70 @@ export default function Campaigns() {
   };
 
   return (
-    <div className="page">
-      <PageHeader title={ru.nav.campaigns} description={t.description}>
-        <button className="button button-primary" onClick={openForm}>
-          <Icon name="plus" size={18} />
-          {t.create}
-        </button>
-      </PageHeader>
+    <div className="page campaigns-page">
+      <header className="campaign-hero">
+        <div className="hero-copy">
+          <div className="eyebrow">
+            <span className="status-dot" />
+            {ru.app.workspace}
+            <span className="hero-index">{t.heroIndex}</span>
+          </div>
+          <h1>
+            {ru.nav.campaigns}
+            <span className="hero-asterisk" aria-hidden="true">
+              ✳
+            </span>
+          </h1>
+          <p className="hero-statement">
+            {t.heroLineOne}
+            <br />
+            <span>{t.heroLineTwo}</span>
+          </p>
+          <p className="hero-description">{t.description}</p>
+          <div className="header-actions">
+            <button className="button button-primary" onClick={openForm}>
+              {t.create}
+              <Icon name="plus" size={18} />
+            </button>
+            <Link className="hero-guide" to="/guide">
+              {ru.nav.guide}
+              <Icon name="arrow" size={17} />
+            </Link>
+          </div>
+        </div>
+        <div className="discovery-map" aria-hidden="true">
+          <div className="map-grid" />
+          <div className="map-orbit orbit-one" />
+          <div className="map-orbit orbit-two" />
+          <div className="map-road road-one" />
+          <div className="map-road road-two" />
+          <div className="map-road road-three" />
+          <span className="map-block block-one" />
+          <span className="map-block block-two" />
+          <span className="map-block block-three" />
+          <span className="map-block block-four" />
+          <span className="map-pin pin-one">
+            <Icon name="pin" size={21} />
+          </span>
+          <span className="map-pin pin-two">
+            <Icon name="pin" size={21} />
+          </span>
+          <span className="map-pin pin-three">
+            <Icon name="pin" size={17} />
+          </span>
+          <span className="map-center">
+            <Icon name="target" size={32} />
+          </span>
+          <span className="map-label">
+            <span className="status-dot" />
+            {t.mapLabel}
+          </span>
+          <span className="map-source">
+            2GIS <span>→</span> LeadGis
+          </span>
+          <span className="map-caption">{t.mapCaption}</span>
+        </div>
+      </header>
       <div className="stats-strip">
         {stats.map((stat) => (
           <div className="stat" key={stat.label}>
@@ -169,10 +225,14 @@ export default function Campaigns() {
       )}
       <section className="panel campaign-panel" aria-label={t.listTitle}>
         <div className="panel-heading">
-          <h2>
-            {t.listTitle}
-            <span className="count-badge">{campaigns?.length ?? "—"}</span>
-          </h2>
+          <div className="panel-title">
+            <div className="eyebrow">{t.listEyebrow}</div>
+            <h2>
+              {t.listPrefix}{" "}
+              <span className="highlight">{t.listHighlight}</span>
+              <span className="count-badge">{campaigns?.length ?? "—"}</span>
+            </h2>
+          </div>
           <label className="search-field">
             <Icon name="search" size={18} />
             <input
