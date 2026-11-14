@@ -1,9 +1,17 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "../api/client";
 import { ru } from "../i18n/ru";
+import { Link } from "react-router-dom";
+import PageHeader from "../components/PageHeader";
+import Icon from "../components/Icon";
 
 interface SettingsOut {
-  app: { host: string; port: number; open_browser: boolean; auth_token_is_set: boolean };
+  app: {
+    host: string;
+    port: number;
+    open_browser: boolean;
+    auth_token_is_set: boolean;
+  };
   source: {
     active: string;
     twogis_api_key_is_set: boolean;
@@ -18,7 +26,11 @@ interface SettingsOut {
     concurrency: number;
   };
   limits: { twogis_rps: number; website_check_concurrency: number };
-  outreach: { user_offer: string; extra_instructions: string; template: string };
+  outreach: {
+    user_offer: string;
+    extra_instructions: string;
+    template: string;
+  };
 }
 
 interface HealthCheck {
@@ -27,9 +39,21 @@ interface HealthCheck {
 }
 
 const LLM_PRESETS: { label: string; provider: string; base_url: string }[] = [
-  { label: "Ollama (локально)", provider: "openai_compat", base_url: "http://localhost:11434/v1" },
-  { label: "OpenAI", provider: "openai_compat", base_url: "https://api.openai.com/v1" },
-  { label: "OpenRouter", provider: "openai_compat", base_url: "https://openrouter.ai/api/v1" },
+  {
+    label: "Ollama (локально)",
+    provider: "openai_compat",
+    base_url: "http://localhost:11434/v1",
+  },
+  {
+    label: "OpenAI",
+    provider: "openai_compat",
+    base_url: "https://api.openai.com/v1",
+  },
+  {
+    label: "OpenRouter",
+    provider: "openai_compat",
+    base_url: "https://openrouter.ai/api/v1",
+  },
   { label: "Anthropic", provider: "anthropic", base_url: "" },
 ];
 
@@ -77,13 +101,20 @@ export default function Settings() {
       const source: Record<string, unknown> = {};
       if (twogisKey) source.twogis_api_key = twogisKey;
 
-      const llm: Record<string, unknown> = { provider: llmProvider, base_url: llmBaseUrl, model: llmModel };
+      const llm: Record<string, unknown> = {
+        provider: llmProvider,
+        base_url: llmBaseUrl,
+        model: llmModel,
+      };
       if (llmApiKey) llm.api_key = llmApiKey;
 
       await api.put("/settings", {
         source,
         llm,
-        outreach: { user_offer: userOffer, extra_instructions: extraInstructions },
+        outreach: {
+          user_offer: userOffer,
+          extra_instructions: extraInstructions,
+        },
       });
       setTwogisKey("");
       setLlmApiKey("");
@@ -102,16 +133,25 @@ export default function Settings() {
     try {
       const body: Record<string, unknown> = {};
       if (twogisKey) body.twogis_api_key = twogisKey;
-      setSourceCheck(await api.post<HealthCheck>("/settings/test/source", body));
+      setSourceCheck(
+        await api.post<HealthCheck>("/settings/test/source", body),
+      );
     } catch (err) {
-      setSourceCheck({ ok: false, detail: err instanceof ApiError ? err.detail : ru.errors.generic });
+      setSourceCheck({
+        ok: false,
+        detail: err instanceof ApiError ? err.detail : ru.errors.generic,
+      });
     } finally {
       setCheckingSource(false);
     }
   };
 
   const llmOverride = (): Record<string, unknown> => {
-    const body: Record<string, unknown> = { provider: llmProvider, base_url: llmBaseUrl, model: llmModel };
+    const body: Record<string, unknown> = {
+      provider: llmProvider,
+      base_url: llmBaseUrl,
+      model: llmModel,
+    };
     if (llmApiKey) body.api_key = llmApiKey;
     return body;
   };
@@ -120,125 +160,226 @@ export default function Settings() {
     setCheckingLlm(true);
     setLlmCheck(null);
     try {
-      setLlmCheck(await api.post<HealthCheck>("/settings/test/llm", llmOverride()));
+      setLlmCheck(
+        await api.post<HealthCheck>("/settings/test/llm", llmOverride()),
+      );
     } catch (err) {
-      setLlmCheck({ ok: false, detail: err instanceof ApiError ? err.detail : ru.errors.generic });
+      setLlmCheck({
+        ok: false,
+        detail: err instanceof ApiError ? err.detail : ru.errors.generic,
+      });
     } finally {
       setCheckingLlm(false);
     }
   };
 
   const loadModels = async () => {
+    setError(null);
     try {
       setLlmModels(await api.post<string[]>("/llm/models", llmOverride()));
     } catch {
       setLlmModels([]);
+      setError(ru.settings.modelError);
     }
   };
 
-  if (!settings && !error) return <p className="p-6 text-sm text-gray-500">{ru.app.loading}</p>;
-
+  const t = ru.settings;
   return (
-    <div className="max-w-2xl p-6">
-      <h1 className="text-xl font-semibold">{ru.nav.settings}</h1>
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
-      {saved && <p className="mt-2 text-sm text-green-700">Сохранено.</p>}
-
+    <div className="page settings-page">
+      <PageHeader title={ru.nav.settings} description={t.description} />
+      <Link to="/guide" className="settings-help">
+        <Icon name="book" size={19} />
+        <span>{t.help}</span>
+        <strong>{t.helpLink}</strong>
+        <Icon name="arrow" size={16} />
+      </Link>
+      {error && (
+        <div className="alert alert-error" role="alert">
+          {error}
+          {!settings && (
+            <button className="text-link" onClick={load}>
+              {ru.common.retry}
+            </button>
+          )}
+        </div>
+      )}
+      {saved && (
+        <div className="alert alert-success" role="status">
+          <Icon name="check" size={17} />
+          {t.saved}
+        </div>
+      )}
+      {!settings && !error && (
+        <div className="loading-state" role="status">
+          <span className="spinner" />
+          {ru.app.loading}
+        </div>
+      )}
       {settings && (
-        <div className="mt-6 flex flex-col gap-8">
-          <section>
-            <h2 className="font-medium">Источник данных</h2>
-            <div className="mt-2 grid gap-2">
-              <label className="text-sm text-gray-600">
-                2GIS API ключ {settings.source.twogis_api_key_is_set && "(задан)"}
+        <form
+          className="settings-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void save();
+          }}
+          onChange={() => setSaved(false)}
+        >
+          <section className="settings-section">
+            <div className="section-description">
+              <h2>{t.source}</h2>
+              <p>{t.sourceHelp}</p>
+            </div>
+            <div className="section-fields">
+              <label className="field" htmlFor="twogis-key">
+                {t.key}
+                {settings.source.twogis_api_key_is_set && (
+                  <span className="configured">
+                    <Icon name="check" size={13} />
+                    {t.configured}
+                  </span>
+                )}
               </label>
               <input
-                className="rounded border px-2 py-1 text-sm"
+                id="twogis-key"
                 type="password"
-                placeholder={settings.source.twogis_api_key_is_set ? "••••••••" : "sk-..."}
+                autoComplete="new-password"
+                placeholder={
+                  settings.source.twogis_api_key_is_set
+                    ? "••••••••"
+                    : "2GIS API"
+                }
                 value={twogisKey}
-                onChange={(e) => setTwogisKey(e.target.value)}
+                onChange={(e) => {
+                  setTwogisKey(e.target.value);
+                  setSourceCheck(null);
+                }}
               />
+              <p className="field-hint">{t.savedKeyHint}</p>
               <button
-                className="w-fit rounded border px-3 py-1 text-sm disabled:opacity-50"
+                className="button button-secondary"
+                type="button"
                 onClick={testSource}
                 disabled={checkingSource}
-                type="button"
               >
-                Проверить подключение
+                {checkingSource ? t.testing : t.test}
+                <Icon name="arrow" size={15} />
               </button>
               {sourceCheck && (
-                <p className={`text-sm ${sourceCheck.ok ? "text-green-700" : "text-red-600"}`}>
+                <p
+                  role="status"
+                  className={`check-result ${sourceCheck.ok ? "success" : "failure"}`}
+                >
                   {sourceCheck.detail}
                 </p>
               )}
             </div>
           </section>
-
-          <section>
-            <h2 className="font-medium">LLM провайдер</h2>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {LLM_PRESETS.map((preset) => (
-                <button
-                  key={preset.label}
-                  type="button"
-                  className="rounded border px-2 py-1 text-xs hover:bg-gray-50"
-                  onClick={() => {
-                    setLlmProvider(preset.provider);
-                    setLlmBaseUrl(preset.base_url);
-                  }}
-                >
-                  {preset.label}
-                </button>
-              ))}
+          <section className="settings-section">
+            <div className="section-description">
+              <h2>{t.llm}</h2>
+              <p>{t.llmHelp}</p>
             </div>
-            <div className="mt-3 grid gap-2">
-              <label className="text-sm text-gray-600">Провайдер</label>
+            <div className="section-fields">
+              <div className="provider-presets">
+                {LLM_PRESETS.map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    aria-pressed={
+                      llmProvider === preset.provider &&
+                      llmBaseUrl === preset.base_url
+                    }
+                    className={
+                      llmProvider === preset.provider &&
+                      llmBaseUrl === preset.base_url
+                        ? "selected"
+                        : ""
+                    }
+                    onClick={() => {
+                      setLlmProvider(preset.provider);
+                      setLlmBaseUrl(preset.base_url);
+                      setLlmCheck(null);
+                      setSaved(false);
+                    }}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+              <label className="field" htmlFor="provider">
+                {t.provider}
+              </label>
               <select
-                className="rounded border px-2 py-1 text-sm"
+                id="provider"
                 value={llmProvider}
-                onChange={(e) => setLlmProvider(e.target.value)}
+                onChange={(e) => {
+                  setLlmProvider(e.target.value);
+                  setLlmCheck(null);
+                }}
               >
-                <option value="openai_compat">OpenAI-совместимый (Ollama, OpenAI, OpenRouter…)</option>
+                <option value="openai_compat">
+                  OpenAI-compatible / Ollama
+                </option>
                 <option value="anthropic">Anthropic</option>
               </select>
-
               {llmProvider === "openai_compat" && (
                 <>
-                  <label className="text-sm text-gray-600">Base URL</label>
+                  <label className="field" htmlFor="base-url">
+                    {t.baseUrl}
+                  </label>
                   <input
-                    className="rounded border px-2 py-1 text-sm"
+                    id="base-url"
+                    type="url"
+                    required
                     value={llmBaseUrl}
-                    onChange={(e) => setLlmBaseUrl(e.target.value)}
+                    onChange={(e) => {
+                      setLlmBaseUrl(e.target.value);
+                      setLlmCheck(null);
+                    }}
                   />
                 </>
               )}
-
-              <label className="text-sm text-gray-600">
-                API ключ {settings.llm.api_key_is_set && "(задан)"}
+              <label className="field" htmlFor="llm-key">
+                {t.apiKey}
+                {settings.llm.api_key_is_set && (
+                  <span className="configured">
+                    <Icon name="check" size={13} />
+                    {t.configured}
+                  </span>
+                )}
               </label>
               <input
-                className="rounded border px-2 py-1 text-sm"
+                id="llm-key"
                 type="password"
-                placeholder={settings.llm.api_key_is_set ? "••••••••" : "пусто — для Ollama не нужен"}
+                autoComplete="new-password"
+                placeholder={settings.llm.api_key_is_set ? "••••••••" : t.noKey}
                 value={llmApiKey}
-                onChange={(e) => setLlmApiKey(e.target.value)}
+                onChange={(e) => {
+                  setLlmApiKey(e.target.value);
+                  setLlmCheck(null);
+                }}
               />
-
-              <label className="text-sm text-gray-600">Модель</label>
-              <div className="flex gap-2">
+              <p className="field-hint">{t.savedKeyHint}</p>
+              <label className="field" htmlFor="llm-model">
+                {t.model}
+              </label>
+              <div className="model-field">
                 <input
-                  className="flex-1 rounded border px-2 py-1 text-sm"
+                  id="llm-model"
+                  required
                   list="llm-models"
                   value={llmModel}
-                  onChange={(e) => setLlmModel(e.target.value)}
+                  onChange={(e) => {
+                    setLlmModel(e.target.value);
+                    setLlmCheck(null);
+                  }}
                 />
                 <button
                   type="button"
-                  className="rounded border px-2 py-1 text-xs"
+                  className="button button-secondary"
                   onClick={loadModels}
                 >
-                  Список моделей
+                  {t.models}
                 </button>
               </div>
               <datalist id="llm-models">
@@ -246,52 +387,68 @@ export default function Settings() {
                   <option key={m} value={m} />
                 ))}
               </datalist>
-
               <button
-                className="w-fit rounded border px-3 py-1 text-sm disabled:opacity-50"
+                className="button button-secondary"
+                type="button"
                 onClick={testLlm}
                 disabled={checkingLlm}
-                type="button"
               >
-                Проверить подключение
+                {checkingLlm ? t.testing : t.test}
+                <Icon name="arrow" size={15} />
               </button>
               {llmCheck && (
-                <p className={`text-sm ${llmCheck.ok ? "text-green-700" : "text-red-600"}`}>
+                <p
+                  role="status"
+                  className={`check-result ${llmCheck.ok ? "success" : "failure"}`}
+                >
                   {llmCheck.detail}
                 </p>
               )}
             </div>
           </section>
-
-          <section>
-            <h2 className="font-medium">Текст сообщений</h2>
-            <div className="mt-2 grid gap-2">
-              <label className="text-sm text-gray-600">Наша услуга</label>
-              <input
-                className="rounded border px-2 py-1 text-sm"
-                placeholder="Делаем сайты для локального бизнеса от 90 000 ₸ за 7 дней"
+          <section className="settings-section">
+            <div className="section-description">
+              <h2>{t.outreach}</h2>
+              <p>{t.outreachHelp}</p>
+            </div>
+            <div className="section-fields">
+              <label className="field" htmlFor="offer">
+                {t.offer}
+              </label>
+              <textarea
+                id="offer"
+                rows={3}
+                placeholder={t.offerPlaceholder}
                 value={userOffer}
                 onChange={(e) => setUserOffer(e.target.value)}
               />
-              <label className="text-sm text-gray-600">Дополнительные инструкции</label>
+              <label className="field" htmlFor="instructions">
+                {t.instructions}
+              </label>
               <textarea
-                className="rounded border px-2 py-1 text-sm"
-                rows={2}
+                id="instructions"
+                rows={3}
+                placeholder={t.instructionsPlaceholder}
                 value={extraInstructions}
                 onChange={(e) => setExtraInstructions(e.target.value)}
               />
             </div>
           </section>
-
-          <button
-            className="w-fit rounded bg-gray-900 px-4 py-2 text-sm text-white disabled:opacity-50"
-            onClick={save}
-            disabled={saving}
-            type="button"
-          >
-            {ru.common.save}
-          </button>
-        </div>
+          <div className="settings-save">
+            <span>
+              <Icon name="shield" size={16} />
+              {ru.app.local}
+            </span>
+            <button
+              className="button button-primary"
+              disabled={saving}
+              type="submit"
+            >
+              <Icon name="check" size={17} />
+              {saving ? t.saving : ru.common.save}
+            </button>
+          </div>
+        </form>
       )}
     </div>
   );

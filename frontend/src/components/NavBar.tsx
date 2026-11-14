@@ -1,22 +1,64 @@
-import { NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { ru } from "../i18n/ru";
-
-const linkClass = ({ isActive }: { isActive: boolean }) =>
-  `px-3 py-2 rounded text-sm font-medium ${isActive ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-100"}`;
+import Icon from "./Icon";
 
 export default function NavBar() {
+  const { pathname } = useLocation();
+  const links = [
+    { to: "/campaigns", icon: "grid", label: ru.nav.campaigns },
+    { to: "/leads", icon: "users", label: ru.nav.leads },
+    { to: "/settings", icon: "settings", label: ru.nav.settings },
+  ] as const;
   return (
-    <nav className="flex items-center gap-2 border-b px-4 py-3">
-      <span className="mr-4 text-lg font-bold">{ru.app.title}</span>
-      <NavLink to="/campaigns" className={linkClass}>
-        {ru.nav.campaigns}
+    <aside className="sidebar">
+      <NavLink to="/campaigns" className="brand">
+        <span className="brand-mark">
+          <Icon name="pin" size={24} />
+        </span>
+        <span>
+          Lead<span className="brand-light">Gis</span>
+          <small>{ru.app.tagline}</small>
+        </span>
       </NavLink>
-      <NavLink to="/leads" className={linkClass}>
-        {ru.nav.leads}
-      </NavLink>
-      <NavLink to="/settings" className={linkClass}>
-        {ru.nav.settings}
-      </NavLink>
-    </nav>
+      <div className="nav-caption">{ru.app.navigation}</div>
+      <nav aria-label={ru.app.navigation} className="main-nav">
+        {links.map(({ to, icon, label }) => {
+          const active =
+            to === "/leads" ? pathname.endsWith("/leads") : pathname === to;
+          return (
+            <Link
+              key={to}
+              to={to}
+              className={`nav-link ${active ? "active" : ""}`}
+              aria-current={active ? "page" : undefined}
+            >
+              <Icon name={icon} />
+              <span>{label}</span>
+              <Icon name="chevron" size={14} />
+            </Link>
+          );
+        })}
+      </nav>
+      <div className="sidebar-bottom">
+        <NavLink
+          to="/guide"
+          className={({ isActive }) =>
+            `nav-link guide-link ${isActive ? "active" : ""}`
+          }
+        >
+          <Icon name="book" />
+          <span>{ru.nav.guide}</span>
+          <Icon name="arrow" size={16} />
+        </NavLink>
+        <div className="local-note">
+          <Icon name="shield" size={19} />
+          <div>
+            {ru.app.local}
+            <small>{ru.app.localDetail}</small>
+          </div>
+        </div>
+        <div className="version">{ru.app.version}</div>
+      </div>
+    </aside>
   );
 }

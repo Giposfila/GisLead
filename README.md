@@ -12,6 +12,13 @@ browser-based mini-CRM — no vendor server, no telemetry.*
 
 ## Быстрый старт / Quickstart
 
+Пошагово: [руководство по началу работы](docs/GETTING_STARTED.md) — установка,
+подключение 2GIS и модели, первая кампания, сообщения и экспорт.
+В приложении откройте **«С чего начать»** в боковой панели (значок книги на телефоне).
+
+See the [getting-started guide](docs/GETTING_STARTED.md#english-quick-walkthrough)
+for an English walkthrough. The in-app guide is under **«С чего начать»**.
+
 ### Из исходников (для разработки) / From source (development)
 
 ```bash

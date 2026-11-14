@@ -1,48 +1,89 @@
+import { useState } from "react";
+import { api, ApiError } from "../api/client";
 import { useJobs } from "../context/JobsContext";
+import { ru } from "../i18n/ru";
 
 export default function ProgressStrip() {
   const { jobs, dismiss } = useJobs();
+  const [cancelling, setCancelling] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const entries = Object.values(jobs).filter((j) => j.status !== "done");
-
-  if (entries.length === 0) return null;
-
+  if (!entries.length) return null;
+  const cancel = async (id: string) => {
+    setCancelling((prev) => [...prev, id]);
+    setError(null);
+    try {
+      await api.post(`/jobs/${id}/cancel`);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.detail : ru.errors.network);
+      setCancelling((prev) => prev.filter((value) => value !== id));
+    }
+  };
   return (
-    <div className="flex flex-col gap-1 border-b bg-gray-50 px-4 py-2">
+    <section className="job-strip" aria-label={ru.jobs.title}>
       {entries.map((job) => {
         const failed = job.status === "failed";
+        const terminal = failed || job.status === "cancelled";
         const percent =
-          job.total && job.total > 0 ? Math.round(((job.done ?? 0) / job.total) * 100) : 0;
+          job.total && job.total > 0
+            ? Math.min(
+                100,
+                Math.max(0, Math.round(((job.done ?? 0) / job.total) * 100)),
+              )
+            : 0;
         return (
           <div
+            className={`job-item ${failed ? "job-failed" : ""}`}
             key={job.job_id}
-            className={`flex items-center gap-3 rounded px-2 py-1 text-sm ${
-              failed ? "bg-red-50 text-red-700" : "text-gray-700"
-            }`}
           >
-            <span className="w-24 shrink-0 font-mono text-xs">{job.job_id.slice(0, 8)}</span>
-            {!failed && (
-              <div className="h-2 flex-1 overflow-hidden rounded bg-gray-200">
-                <div
-                  className="h-full bg-gray-900 transition-all"
-                  style={{ width: `${percent}%` }}
-                />
+            <div className="job-copy" role={failed ? "alert" : "status"}>
+              <strong>
+                {failed
+                  ? ru.jobs.failed
+                  : job.status === "cancelled"
+                    ? ru.jobs.cancelled
+                    : job.status === "queued"
+                      ? ru.jobs.queued
+                      : ru.jobs.running}
+              </strong>
+              <span>{job.detail ?? job.job_id.slice(0, 8)}</span>
+              {failed && <small>{ru.jobs.retryHint}</small>}
+            </div>
+            {!terminal && (
+              <div
+                className="job-progress"
+                role="progressbar"
+                aria-label={ru.jobs.running}
+                aria-valuenow={percent}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              >
+                <span style={{ width: `${percent}%` }} />
               </div>
             )}
-            <span className="flex-1 truncate">
-              {failed ? (job.detail ?? "Ошибка") : (job.detail ?? job.status ?? "")}
-            </span>
-            {(failed || job.status === "cancelled") && (
+            {terminal ? (
+              <button className="text-link" onClick={() => dismiss(job.job_id)}>
+                {ru.jobs.hide}
+              </button>
+            ) : (
               <button
-                className="text-xs underline"
-                onClick={() => dismiss(job.job_id)}
-                type="button"
+                className="text-link"
+                disabled={cancelling.includes(job.job_id)}
+                onClick={() => cancel(job.job_id)}
               >
-                Скрыть
+                {cancelling.includes(job.job_id)
+                  ? ru.jobs.cancelling
+                  : ru.common.cancel}
               </button>
             )}
           </div>
         );
       })}
-    </div>
+      {error && (
+        <p className="check-result failure" role="alert">
+          {error}
+        </p>
+      )}
+    </section>
   );
 }
