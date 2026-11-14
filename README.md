@@ -1,4 +1,6 @@
-# LeadGis
+# LeadGis — Local Lead Generation & Mini CRM
+
+**От поиска компаний в 2GIS до персонального сообщения — в одном локальном приложении.**
 
 Полностью локальный, open-source инструмент для лидогенерации: собирает
 организации из 2GIS по нише и городу, проверяет наличие сайта и мессенджеров,
@@ -9,6 +11,43 @@
 2GIS by niche and city, checks for a website/messengers, drafts a
 personalized outreach message via an LLM, and shows everything in a
 browser-based mini-CRM — no vendor server, no telemetry.*
+
+Данные и настройки хранятся на вашем компьютере. Для локальной генерации
+используйте Ollama; при выборе облачной модели данные для сообщения
+передаются выбранному провайдеру.
+
+*Data and settings stay on your machine. Use Ollama for local generation;
+cloud models receive the data needed to draft each message.*
+
+## Возможности / Features
+
+- **Поиск компаний** — кампании по нише и городу, сбор организаций через 2GIS Catalog API.
+- **Контакты и сайты** — проверка сайта, телефоны и ссылки на мессенджеры.
+- **Персональные сообщения** — генерация через Ollama, Anthropic или OpenAI-совместимый API; редактирование перед отправкой.
+- **Мини-CRM** — поиск, фильтры и статусы от нового лида до клиента.
+- **Отправка и экспорт** — открытие сообщения в WhatsApp для ручной отправки, выгрузка кампании в CSV или XLSX.
+
+*Search businesses by niche and city, check websites, draft personalized
+messages, track conversations, and export your leads to CSV or XLSX.*
+
+## Скриншоты / Screenshots
+
+Реальный интерфейс с демонстрационными компаниями и примером сообщения.
+Интерфейс приложения — на русском языке.
+
+*The actual interface with demo businesses and a sample message. The app UI is in Russian.*
+
+### Кампании / Campaigns
+
+Обзор кампаний, количество лидов, статусы и экспорт в одном месте.
+
+![LeadGis: список кампаний по нишам и городам, сводка по лидам и кнопки экспорта](docs/screenshots/campaigns.png)
+
+### Лиды и сообщения / Leads & messages
+
+Фильтры по сайту, телефону и статусу; раскрытая карточка компании с редактором сообщения.
+
+![LeadGis: таблица лидов и раскрытая карточка компании с персональным сообщением](docs/screenshots/leads.png)
 
 ## Быстрый старт / Quickstart
 
@@ -21,11 +60,20 @@ for an English walkthrough. The in-app guide is under **«С чего начат
 
 ### Из исходников (для разработки) / From source (development)
 
+Нужны **Python 3.11+**, **Node.js 18+** и **npm**. Выполняйте команды из корня
+репозитория. / Requires **Python 3.11+**, **Node.js 18+** and **npm**. Run from the repository root.
+
 ```bash
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -e ".[dev]"
 cd frontend && npm install && npm run build && cd ..
 leadgis start
 ```
+
+На Windows используйте `py -m venv .venv` и `.venv\Scripts\Activate.ps1`
+в PowerShell. / On Windows, use `py -m venv .venv` and activate with
+`.venv\Scripts\Activate.ps1` in PowerShell.
 
 ### pipx (для обычной установки) / pipx (regular install)
 
@@ -49,6 +97,18 @@ leadgis start
 *Either way this opens `http://127.0.0.1:8000`. Config and DB are created
 automatically on first run. Next: Settings → pick an LLM (Ollama needs no
 key) → create a campaign → collect leads → generate messages.*
+
+### Первая кампания / First campaign
+
+1. В **«Настройках»** укажите ключ [2GIS Catalog API](https://dev.2gis.com/), проверьте подключение и сохраните. Доступ и квоты зависят от условий вашего ключа.
+2. Выберите модель, опишите свою услугу в **«Ваша услуга»** и сохраните настройки.
+3. Создайте кампанию с нишей и городом, затем нажмите **«Собрать лиды»**.
+4. Откройте лиды кампании, отберите компании фильтрами и раскройте карточку.
+5. Сгенерируйте сообщение, проверьте текст и сохраните правки. Откройте WhatsApp для ручной отправки и обновите статус лида.
+
+*In Settings, save your 2GIS key, model and service offer. Create a campaign,
+collect leads, filter the results, then expand a company to generate and
+review its message. Open WhatsApp to send it manually and track the lead's status.*
 
 ## Разработка / Development
 
@@ -84,4 +144,4 @@ cd frontend && npm run dev
 
 ## License
 
-MIT
+[MIT](LICENSE)
