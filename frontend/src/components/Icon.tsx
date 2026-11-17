@@ -10,6 +10,7 @@ const paths = {
   search: "M21 21l-5-5 M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0",
   pin: "M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0 M15 10a3 3 0 1 1-6 0 3 3 0 0 1 6 0",
   download: "M12 3v12 M7 10l5 5 5-5 M4 16v5h16v-5",
+  pause: "M9 5v14 M15 5v14",
   play: "M8 5l12 7-12 7z",
   check: "M5 12l4 4L19 6",
   close: "M6 6l12 12 M6 18L18 6",

@@ -1,6 +1,7 @@
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { ru } from "../i18n/ru";
 import Icon from "./Icon";
+import serviceLogo from "../assets/service-logo.png";
 
 export default function NavBar() {
   const { pathname } = useLocation();
@@ -17,9 +18,13 @@ export default function NavBar() {
         className="brand"
         aria-label={`${ru.app.title} — ${ru.nav.campaigns}`}
       >
-        <span className="brand-mark" aria-hidden="true">
-          ✳
-        </span>
+        <img
+          className="brand-mark"
+          src={serviceLogo}
+          alt=""
+          width={48}
+          height={48}
+        />
         <span>
           Lead<span className="brand-light">Gis</span>
           <small>{ru.app.tagline}</small>
@@ -42,11 +47,6 @@ export default function NavBar() {
           );
         })}
       </nav>
-      <div className="nav-local">
-        <span className="status-dot" />
-        {ru.app.localShort}
-        <Icon name="shield" size={16} />
-      </div>
     </header>
   );
 }

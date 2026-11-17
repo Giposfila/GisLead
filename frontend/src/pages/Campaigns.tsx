@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import type { Campaign } from "../api/types";
 import Icon from "../components/Icon";
+import DiscoveryMap from "../components/DiscoveryMap";
 import { useJobs } from "../context/JobsContext";
 import { ru } from "../i18n/ru";
 
@@ -50,8 +51,10 @@ export default function Campaigns() {
       load();
   }, [jobs]);
   useEffect(() => {
-    if (showForm) dialog.current?.showModal();
-    else dialog.current?.close();
+    if (showForm) {
+      dialog.current?.showModal();
+      dialog.current?.querySelector("input")?.focus();
+    } else dialog.current?.close();
   }, [showForm]);
 
   const createCampaign = async (e: React.FormEvent) => {
@@ -154,38 +157,7 @@ export default function Campaigns() {
             </Link>
           </div>
         </div>
-        <div className="discovery-map" aria-hidden="true">
-          <div className="map-grid" />
-          <div className="map-orbit orbit-one" />
-          <div className="map-orbit orbit-two" />
-          <div className="map-road road-one" />
-          <div className="map-road road-two" />
-          <div className="map-road road-three" />
-          <span className="map-block block-one" />
-          <span className="map-block block-two" />
-          <span className="map-block block-three" />
-          <span className="map-block block-four" />
-          <span className="map-pin pin-one">
-            <Icon name="pin" size={21} />
-          </span>
-          <span className="map-pin pin-two">
-            <Icon name="pin" size={21} />
-          </span>
-          <span className="map-pin pin-three">
-            <Icon name="pin" size={17} />
-          </span>
-          <span className="map-center">
-            <Icon name="target" size={32} />
-          </span>
-          <span className="map-label">
-            <span className="status-dot" />
-            {t.mapLabel}
-          </span>
-          <span className="map-source">
-            2GIS <span>→</span> LeadGis
-          </span>
-          <span className="map-caption">{t.mapCaption}</span>
-        </div>
+        <DiscoveryMap />
       </header>
       <div className="stats-strip">
         {stats.map((stat) => (

@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import NavBar from "./components/NavBar";
 import ProgressStrip from "./components/ProgressStrip";
 import { JobsProvider } from "./context/JobsContext";
@@ -9,6 +9,7 @@ import Guide from "./pages/Guide";
 import { ru } from "./i18n/ru";
 
 export default function App() {
+  const { pathname } = useLocation();
   return (
     <JobsProvider>
       <div className="app-shell">
@@ -18,15 +19,17 @@ export default function App() {
         <NavBar />
         <main id="main" className="main-content">
           <ProgressStrip />
-          <Routes>
-            <Route path="/" element={<Navigate to="/campaigns" replace />} />
-            <Route path="/campaigns" element={<Campaigns />} />
-            <Route path="/leads" element={<Leads />} />
-            <Route path="/campaigns/:campaignId/leads" element={<Leads />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/guide" element={<Guide />} />
-            <Route path="*" element={<Navigate to="/campaigns" replace />} />
-          </Routes>
+          <div className="route-view" key={pathname}>
+            <Routes>
+              <Route path="/" element={<Navigate to="/campaigns" replace />} />
+              <Route path="/campaigns" element={<Campaigns />} />
+              <Route path="/leads" element={<Leads />} />
+              <Route path="/campaigns/:campaignId/leads" element={<Leads />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/guide" element={<Guide />} />
+              <Route path="*" element={<Navigate to="/campaigns" replace />} />
+            </Routes>
+          </div>
           <footer className="workspace-footer">
             <span>
               LeadGis
